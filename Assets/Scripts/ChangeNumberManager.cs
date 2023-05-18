@@ -7,41 +7,44 @@ public class ChangeNumberManager : MonoBehaviour {
     [SerializeField] private PlayField playField;
 
     private GameStates gState;
-    private long steps;
-    public TextMeshProUGUI _stepsText;
+    private int steps;
+    //public TextMeshProUGUI _stepsText;
 
     // Start is called before the first frame update
     void Start() {
         steps = 0;
-        _stepsText.SetText(steps.ToString());
+        //_stepsText.SetText(steps.ToString());
         gState = FindObjectOfType<GameStates>();
     }
 
     public void setNewPlayField(PlayField playField) {
         this.playField = playField;
-        if (playField != null) { checkState(); }
+        if (playField != null) { Replay(); }
     }
 
     public PlayField getPlayField() {
         return playField;
     }
 
+    public int getSteps() {
+        return steps;
+    }
+
     public void Replay() {
         steps = 0;
-        _stepsText.SetText(steps.ToString());
+        //_stepsText.SetText(steps.ToString());
         checkState();
     }
 
     public void stepRevert() {
         if (steps <= 0) return;
         playField.revertStep();
-        steps -= 2;
-        stepsUpdate();
+        steps--;
     }
 
     private void stepsUpdate() {
         steps++;
-        _stepsText.SetText(steps.ToString());
+        //_stepsText.SetText(steps.ToString());
     }
 
     public void mouseOn(int pos, bool isPlus) {
@@ -149,6 +152,6 @@ public class ChangeNumberManager : MonoBehaviour {
         }
 
         if (lose) { gState.LoseState(); }
-        if (win) { gState.WinState(); }
+        if (win) { gState.WinState(steps); }
     }
 }

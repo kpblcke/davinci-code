@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,18 +12,24 @@ public class GameStates : MonoBehaviour {
     
     public GameObject startOverlay;
     public GameObject overlay;
+    public GameObject levelsContainer;
 
     private ChangeNumberManager _numberManager;
 
-    [SerializeField]
-    private Slider _slider;
-    
     private FieldGenerator _fieldGenerator;
+
+    [SerializeField]
+    private LevelVariant currentLevel;
+
+    [SerializeField]
+    private List<LevelVariant> levels;
 
     // Start is called before the first frame update
     void Start() {
         _numberManager = FindObjectOfType<ChangeNumberManager>();
         _fieldGenerator = FindObjectOfType<FieldGenerator>();
+
+        levels = levelsContainer.GetComponentsInChildren<LevelVariant>().ToList();
     }
 
     // Update is called once per frame
@@ -32,7 +39,6 @@ public class GameStates : MonoBehaviour {
     
     public void clearLvl() {
         _fieldGenerator.clearLvl();
-        //PlayField playField = _fieldGenerator.generateLvl((int) _slider.value);
         targetText.SetText("");
         _numberManager.setNewPlayField(null);
     }
@@ -46,18 +52,20 @@ public class GameStates : MonoBehaviour {
             targetValues.Add(Random.Range(0, digits));
         }
         Level customLevel = new Level(startedValues, targetValues);
-        startGame(customLevel);
+        startGame(customLevel, null);
     }
     
-    public void startGame(Level customLevel) {
+    public void startGame(Level customLevel, LevelVariant levelVariant) {
         startOverlay.SetActive(false);
+        if (levelVariant != null) currentLevel = levelVariant;
         PlayField playField = _fieldGenerator.generateSettedLvl(customLevel.StartedValues, customLevel.TargetValues);
         targetText.SetText(playField.getTargetText());
         _numberManager.setNewPlayField(playField);
     }
 
-    public void WinState() {
+    public void WinState(int steps) {
         overlay.SetActive(true);
+        currentLevel.Win(steps);
         _textMeshPro.SetText("YOU WIN!");
     }
 
@@ -71,5 +79,15 @@ public class GameStates : MonoBehaviour {
         overlay.SetActive(false);
         _numberManager.setNewPlayField(_fieldGenerator.resetLvl(_numberManager.getPlayField()));
         _numberManager.Replay();
+    }
+
+    public void PlayNextLevel() {
+        int currLevel = levels.IndexOf(currentLevel);
+        if (levels.Count < currLevel) {
+            return;
+        }
+        clearLvl();
+        currLevel++;
+        startGame(levels[currLevel].getLevel(), levels[currLevel]);
     }
 }
